@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMART目标制定工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        textarea, input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .goal-card {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .countdown {
+            font-size: 1.1em;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .countdown.normal {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .countdown.urgent {
+            background-color: #fff3e0;
+            color: #e65100;
+        }
+        .countdown.expired {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .time-input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .time-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .estimated-time {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .urgency-score {
+            font-size: 1.2em;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .score-value {
+            font-size: 1.4em;
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        
+        .urgency-critical {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .urgency-high {
+            background-color: #fff3e0;
+            color: #e65100;
+        }
+        
+        .urgency-medium {
+            background-color: #fff8e1;
+            color: #f9a825;
+        }
+        
+        .urgency-low {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .rank-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.9em;
+            color: white;
+        }
+        
+        .rank-badge.urgency-critical {
+            background-color: #c62828;
+        }
+        
+        .rank-badge.urgency-high {
+            background-color: #e65100;
+        }
+        
+        .rank-badge.urgency-medium {
+            background-color: #f9a825;
+        }
+        
+        .rank-badge.urgency-low {
+            background-color: #2e7d32;
+        }
+        .tab-buttons {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .tab-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        
+        .tab-buttons button.tab-active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .completed-card {
+            opacity: 0.8;
+            background-color: #f8f9fa;
+        }
+        
+        .completed-badge {
+            background-color: #4CAF50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .complete-button {
+            background-color: #4CAF50;
+        }
+        .reflection-input {
+            width: 100%;
+            min-height: 100px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        
+        .reflection-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        
+        .reflection-content {
+            position: relative;
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .reflection-box {
+            background-color: #f0f7ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            border-left: 4px solid #1976d2;
+        }
+        
+        .close-modal {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        .share-button {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            background-color: #1976d2;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 999;
+            border: none;
+            font-size: 16px;
+        }
+
+        .share-button:hover {
+            background-color: #1565c0;
+        }
+
+        .share-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .share-content {
+            position: relative;
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .share-link {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .share-link input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .copy-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+</head>
+<body>
+    <h1>SMART目标制定工具</h1>
+    
+    <div class="form-group">
+        <label>具体 (Specific)：你想要达成什么具体目标？</label>
+        <textarea id="specific" rows="3" placeholder="例如：我想在3个月内学会Vue.js框架"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label>可衡量 (Measurable)：如何衡量进度？</label>
+        <textarea id="measurable" rows="3" placeholder="例如：完成一完整的Vue.js项目，包含5个主要功能"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label>可实现 (Achievable)：这个目标是否切实可行？</label>
+        <textarea id="achievable" rows="3" placeholder="例如：我每天可以投入2小时学习，已经有JavaScript基础"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label>相关性 (Relevant)：这个目标与你的长期计划是否相关？</label>
+        <textarea id="relevant" rows="3" placeholder="例如：这个技能对我的前端开发职业规划很重要"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label>预估所需时间</label>
+        <div class="time-input-group">
+            <input type="number" id="estimatedDays" min="0" placeholder="天" class="time-input">
+            <input type="number" id="estimatedHours" min="0" max="23" placeholder="小时" class="time-input">
+            <input type="number" id="estimatedMinutes" min="0" max="59" placeholder="分钟" class="time-input">
+            <input type="number" id="estimatedSeconds" min="0" max="59" placeholder="秒" class="time-input">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>时限性 (Time-bound)：完成目标的截止日期和时间</label>
+        <input type="datetime-local" id="timebound" step="1">
+    </div>
+
+    <button onclick="saveGoal()">保存目标</button>
+
+    <div class="tab-buttons">
+        <button onclick="switchTab('active')" id="activeTab" class="tab-active">进行中的目标</button>
+        <button onclick="switchTab('completed')" id="completedTab">已完成的目标</button>
+    </div>
+
+    <div id="savedGoals"></div>
+    <div id="completedGoals" style="display: none;"></div>
+
+    <div id="reflectionModal" class="reflection-modal">
+        <div class="reflection-content">
+            <span class="close-modal" onclick="closeReflectionModal()">&times;</span>
+            <h2>完成目标总结</h2>
+            <p>恭喜你完成了这个目标！请分享一下你的收获和感悟：</p>
+            <textarea id="reflectionInput" class="reflection-input" 
+                placeholder="例如：
+1. 在这个过程中学到了什么？
+2. 遇到了哪些挑战，是如何克服的？
+3. 对自己有什么新的认识？
+4. 下次可以如何做得更好？"></textarea>
+            <button onclick="submitReflection()">提交总结</button>
+        </div>
+    </div>
+
+    <button class="share-button" onclick="showShareModal()">
+        分享应用 📤
+    </button>
+
+    <div id="shareModal" class="share-modal">
+        <div class="share-content">
+            <span class="close-modal" onclick="closeShareModal()">&times;</span>
+            <h2>分享应用</h2>
+            <div class="share-link">
+                <input type="text" id="shareLink" readonly>
+                <button onclick="copyLink()" class="copy-button">复制链接</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 内联JavaScript以确保代码正常运行
+        // 保存目标到本地存储
+        function saveGoal() {
+            // 计算预估时间（转换为秒）
+            const estimatedSeconds = (
+                (parseInt(document.getElementById('estimatedDays').value || 0) * 24 * 60 * 60) +
+                (parseInt(document.getElementById('estimatedHours').value || 0) * 60 * 60) +
+                (parseInt(document.getElementById('estimatedMinutes').value || 0) * 60) +
+                parseInt(document.getElementById('estimatedSeconds').value || 0)
+            );
+
+            const goal = {
+                specific: document.getElementById('specific').value,
+                measurable: document.getElementById('measurable').value,
+                achievable: document.getElementById('achievable').value,
+                relevant: document.getElementById('relevant').value,
+                timebound: document.getElementById('timebound').value,
+                estimatedSeconds: estimatedSeconds,
+                createdAt: new Date().toISOString()
+            };
+
+            if (!validateGoal(goal)) {
+                alert('请填写所有字段！');
+                return;
+            }
+
+            let goals = JSON.parse(localStorage.getItem('smartGoals') || '[]');
+            goals.push(goal);
+            localStorage.setItem('smartGoals', JSON.stringify(goals));
+
+            displayGoals();
+            clearForm();
+        }
+
+        // 验证所有字段是否已填写
+        function validateGoal(goal) {
+            return goal.specific && 
+                   goal.measurable && 
+                   goal.achievable && 
+                   goal.relevant && 
+                   goal.timebound;
+        }
+
+        // 清空表单
+        function clearForm() {
+            document.getElementById('specific').value = '';
+            document.getElementById('measurable').value = '';
+            document.getElementById('achievable').value = '';
+            document.getElementById('relevant').value = '';
+            document.getElementById('timebound').value = '';
+            document.getElementById('estimatedDays').value = '';
+            document.getElementById('estimatedHours').value = '';
+            document.getElementById('estimatedMinutes').value = '';
+            document.getElementById('estimatedSeconds').value = '';
+        }
+
+        // 当前显示的标签页
+        let currentTab = 'active';
+
+        // 切换标签页
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('savedGoals').style.display = tab === 'active' ? 'block' : 'none';
+            document.getElementById('completedGoals').style.display = tab === 'completed' ? 'block' : 'none';
+            document.getElementById('activeTab').classList.toggle('tab-active', tab === 'active');
+            document.getElementById('completedTab').classList.toggle('tab-active', tab === 'completed');
+            displayGoals();
+        }
+
+        // 存储临时完成的目标索引
+        let tempCompletedGoalIndex = null;
+
+        // 显示反思模态框
+        function showReflectionModal(index) {
+            tempCompletedGoalIndex = index;
+            document.getElementById('reflectionModal').style.display = 'block';
+            document.getElementById('reflectionInput').focus();
+        }
+
+        // 关闭反思模态框
+        function closeReflectionModal() {
+            document.getElementById('reflectionModal').style.display = 'none';
+            document.getElementById('reflectionInput').value = '';
+            tempCompletedGoalIndex = null;
+        }
+
+        // 提交反思内容
+        function submitReflection() {
+            const reflection = document.getElementById('reflectionInput').value.trim();
+            if (!reflection) {
+                alert('请输入你的收获和感悟！');
+                return;
+            }
+
+            let goals = JSON.parse(localStorage.getItem('smartGoals') || '[]');
+            const completedGoal = goals[tempCompletedGoalIndex];
+            completedGoal.completedAt = new Date().toISOString();
+            completedGoal.reflection = reflection;
+            goals.splice(tempCompletedGoalIndex, 1);
+            
+            let completedGoals = JSON.parse(localStorage.getItem('completedGoals') || '[]');
+            completedGoals.push(completedGoal);
+            
+            localStorage.setItem('smartGoals', JSON.stringify(goals));
+            localStorage.setItem('completedGoals', JSON.stringify(completedGoals));
+            
+            closeReflectionModal();
+            displayGoals();
+        }
+
+        // 修改完成目标函数
+        function completeGoal(index) {
+            if (confirm('确定要将此目标标记为已完成吗？')) {
+                showReflectionModal(index);
+            }
+        }
+
+        // 修改 displayGoals 函数
+        function displayGoals() {
+            if (currentTab === 'active') {
+                displayActiveGoals();
+            } else {
+                displayCompletedGoals();
+            }
+        }
+
+        // 显示进行中的目标
+        function displayActiveGoals() {
+            let goals = JSON.parse(localStorage.getItem('smartGoals') || '[]');
+            const container = document.getElementById('savedGoals');
+            container.innerHTML = '';
+
+            // 计算每个目标的当前紧急度分数
+            goals = goals.map(goal => {
+                const deadline = new Date(goal.timebound);
+                const now = new Date();
+                const timeLeft = deadline - now;
+                const urgencyScore = calculateUrgencyScore(goal.estimatedSeconds, timeLeft);
+                return { ...goal, currentUrgencyScore: urgencyScore };
+            });
+
+            // 根据紧急度评分排序（降序）
+            goals.sort((a, b) => b.currentUrgencyScore - a.currentUrgencyScore);
+
+            goals.forEach((goal, index) => {
+                const goalElement = document.createElement('div');
+                goalElement.className = 'goal-card';
+                
+                // 格式化截止时间显示
+                const deadline = new Date(goal.timebound);
+                const formattedDeadline = deadline.toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+
+                // 计算剩余时间
+                const now = new Date();
+                const timeLeft = deadline - now;
+                const timeLeftStr = formatTimeLeft(timeLeft);
+                
+                const status = timeLeft < 0 ? 'expired' : (timeLeft < 86400000 ? 'urgent' : 'normal');
+                const estimatedTimeStr = formatDuration(goal.estimatedSeconds);
+                const urgencyScore = goal.currentUrgencyScore;
+                const urgencyClass = getUrgencyClass(urgencyScore);
+                const urgencyText = getUrgencyText(urgencyScore);
+                
+                goalElement.innerHTML = `
+                    <div class="goal-header">
+                        <h3>目标 #${index + 1}</h3>
+                        <div class="rank-badge ${urgencyClass}">排名 #${index + 1}</div>
+                    </div>
+                    <p><strong>具体目标：</strong>${goal.specific}</p>
+                    <p><strong>衡量标准：</strong>${goal.measurable}</p>
+                    <p><strong>可现性：</strong>${goal.achievable}</p>
+                    <p><strong>相关性：</strong>${goal.relevant}</p>
+                    <p><strong>截止日期：</strong>${formattedDeadline}</p>
+                    <p class="estimated-time"><strong>预估所需时间：</strong>${estimatedTimeStr}</p>
+                    <p class="countdown ${status}"><strong>剩余时间：</strong><span id="countdown-${index}">${timeLeftStr}</span></p>
+                    <div class="urgency-score ${urgencyClass}">
+                        <span><strong>紧急度评分：</strong>${urgencyText} (${urgencyScore.toFixed(2)}分)</span>
+                        <span class="score-value">${urgencyScore.toFixed(2)}</span>
+                    </div>
+                    <div class="button-group">
+                        <button onclick="completeGoal(${index})" class="complete-button">完成</button>
+                        <button onclick="deleteGoal(${index})" style="background-color: #ff4444;">删除</button>
+                    </div>
+                `;
+                container.appendChild(goalElement);
+            });
+
+            startCountdown();
+        }
+
+        // 显示已完成的目标
+        function displayCompletedGoals() {
+            const completedGoals = JSON.parse(localStorage.getItem('completedGoals') || '[]');
+            const container = document.getElementById('completedGoals');
+            container.innerHTML = '';
+
+            completedGoals.reverse().forEach((goal, index) => {
+                const goalElement = document.createElement('div');
+                goalElement.className = 'goal-card completed-card';
+                
+                const deadline = new Date(goal.timebound);
+                const completedAt = new Date(goal.completedAt);
+                const formattedDeadline = deadline.toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                const formattedCompletedAt = completedAt.toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+
+                const estimatedTimeStr = formatDuration(goal.estimatedSeconds);
+                
+                goalElement.innerHTML = `
+                    <div class="goal-header">
+                        <h3>已完成目标 #${index + 1}<span class="completed-badge">已完成</span></h3>
+                    </div>
+                    <p><strong>具体目标：</strong>${goal.specific}</p>
+                    <p><strong>衡量标准：</strong>${goal.measurable}</p>
+                    <p><strong>可实现性：</strong>${goal.achievable}</p>
+                    <p><strong>相关性：</strong>${goal.relevant}</p>
+                    <p><strong>截止日期：</strong>${formattedDeadline}</p>
+                    <p><strong>完成时间：</strong>${formattedCompletedAt}</p>
+                    <p class="estimated-time"><strong>预估所需时间：</strong>${estimatedTimeStr}</p>
+                    <div class="reflection-box">
+                        <h4>📝 实践收获与认知改变</h4>
+                        <p>${goal.reflection.replace(/\n/g, '<br>')}</p>
+                    </div>
+                    <button onclick="deleteCompletedGoal(${index})" style="background-color: #ff4444;">删除记录</button>
+                `;
+                container.appendChild(goalElement);
+            });
+        }
+
+        // 删除已完成的目标记录
+        function deleteCompletedGoal(index) {
+            if (confirm('确定要删除这条完成记录吗？')) {
+                let completedGoals = JSON.parse(localStorage.getItem('completedGoals') || '[]');
+                completedGoals.splice(index, 1);
+                localStorage.setItem('completedGoals', JSON.stringify(completedGoals));
+                displayGoals();
+            }
+        }
+
+        // 格式化剩余时间
+        function formatTimeLeft(timeLeft) {
+            if (timeLeft < 0) {
+                return '已过期';
+            }
+
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+            let result = '';
+            if (days > 0) result += `${days}天`;
+            if (hours > 0) result += `${hours}小时`;
+            if (minutes > 0) result += `${minutes}分钟`;
+            result += `${seconds}秒`;
+
+            return result;
+        }
+
+        // 启动倒计时更新
+        function startCountdown() {
+            if (window.countdownTimer) {
+                clearInterval(window.countdownTimer);
+            }
+
+            window.countdownTimer = setInterval(() => {
+                // 重新显示所有目标以更新排序
+                displayGoals();
+            }, 1000);
+        }
+
+        // 删除目标
+        function deleteGoal(index) {
+            if (confirm('确定要删除这个目标吗？')) {
+                let goals = JSON.parse(localStorage.getItem('smartGoals') || '[]');
+                goals.splice(index, 1);
+                localStorage.setItem('smartGoals', JSON.stringify(goals));
+                displayGoals();
+            }
+        }
+
+        // 页面加载时显示已保存的目标
+        window.onload = displayGoals;
+
+        // 添加新的格式化函数
+        function formatDuration(seconds) {
+            if (seconds === 0) return '0秒';
+            
+            const days = Math.floor(seconds / (24 * 60 * 60));
+            const hours = Math.floor((seconds % (24 * 60 * 60)) / (60 * 60));
+            const minutes = Math.floor((seconds % (60 * 60)) / 60);
+            const remainingSeconds = seconds % 60;
+            
+            let result = '';
+            if (days > 0) result += `${days}天`;
+            if (hours > 0) result += `${hours}小时`;
+            if (minutes > 0) result += `${minutes}分钟`;
+            if (remainingSeconds > 0) result += `${remainingSeconds}秒`;
+            
+            return result;
+        }
+
+        // 计算紧急度分数
+        function calculateUrgencyScore(estimatedSeconds, timeLeft) {
+            if (timeLeft <= 0) return 100; // 已过期任务
+            
+            // 将毫秒转换为秒
+            const timeLeftSeconds = timeLeft / 1000;
+            
+            // 计算比例：预估时间/剩余时间
+            const ratio = estimatedSeconds / timeLeftSeconds;
+            
+            // 将比例转换为0-100的分数
+            // 当预估时间等于剩余时间时，紧急度为50分
+            // 当预估时间是剩余时间的2倍或以上时，紧急度为100分
+            // 当预估时间是剩余时间的1/4或以下时，紧急度为0分
+            if (ratio >= 2) return 100;
+            if (ratio <= 0.25) return 0;
+            
+            // 线性映射到0-100分
+            return (ratio - 0.25) * (100 / 1.75);
+        }
+
+        // 获取紧急度对应的CSS类
+        function getUrgencyClass(score) {
+            if (score >= 75) return 'urgency-critical';
+            if (score >= 50) return 'urgency-high';
+            if (score >= 25) return 'urgency-medium';
+            return 'urgency-low';
+        }
+
+        // 获取紧急度对应的文字描述
+        function getUrgencyText(score) {
+            if (score >= 75) return '极度紧急';
+            if (score >= 50) return '紧急';
+            if (score >= 25) return '一般';
+            return '不紧急';
+        }
+
+        // 添加键盘事件：按ESC关闭模态框
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeReflectionModal();
+            }
+        });
+
+        // 显示分享模态框
+        function showShareModal() {
+            const shareModal = document.getElementById('shareModal');
+            const shareLinkInput = document.getElementById('shareLink');
+            const shareUrl = 'https://fly101101.github.io';
+            shareLinkInput.value = shareUrl;
+            shareModal.style.display = 'block';
+        }
+
+        // 复制链接
+        function copyLink() {
+            const shareLinkInput = document.getElementById('shareLink');
+            shareLinkInput.select();
+            try {
+                document.execCommand('copy');
+                alert('链接已复制到剪贴板！');
+            } catch (error) {
+                console.error('复制失败:', error);
+                alert('复制失败，请手动复制链接');
+            }
+        }
+
+        // 关闭分享模态框
+        function closeShareModal() {
+            document.getElementById('shareModal').style.display = 'none';
+        }
+
+        // ESC 键关闭模态框
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeShareModal();
+                closeReflectionModal();
+            }
+        });
+    </script>
+</body>
+</html> 
